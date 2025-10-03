@@ -349,6 +349,7 @@ interface Request extends Body {
 declare var Request: {
   readonly prototype: Request;
   new (input: RequestInfo | URL, init?: RequestInit): Request;
+  withTransfer(input: RequestInfo | URL, amount: number, init?: RequestInit): Request;
 };
 
 /** @category Fetch */
@@ -392,6 +393,7 @@ declare var Response: {
   json(data: unknown, init?: ResponseInit): Response;
   error(): Response;
   redirect(url: string | URL, status?: number): Response;
+  withTransfer(body?: BodyInit | null, amount: number, init?: ResponseInit): Response;
 };
 
 /** Fetch a resource from the network. It returns a `Promise` that resolves to the
