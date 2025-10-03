@@ -14,9 +14,11 @@ const {
   ArrayPrototypeMap,
   ArrayPrototypeSlice,
   ArrayPrototypeSplice,
+  ObjectDefineProperties,
   ObjectKeys,
   ObjectPrototypeIsPrototypeOf,
   RegExpPrototypeExec,
+  String,
   StringPrototypeStartsWith,
   Symbol,
   SymbolFor,
@@ -40,6 +42,7 @@ import {
   guardFromHeaders,
   headerListFromHeaders,
   headersFromHeaderList,
+  Headers,
 } from "ext:deno_fetch/20_headers.js";
 import { HttpClientPrototype } from "ext:deno_fetch/22_http_client.js";
 import {
@@ -305,6 +308,36 @@ class Request {
   }
 
   /**
+   * Constructs a `Request` object that includes the specified mutez transfer amount in its headers.
+   *
+   * @param {RequestInfo} input - The input to construct the request (URL or existing `Request`).
+   * @param {number} amount - The amount in mutez to transfer.
+   * @param {RequestInit} [init={}] - Optional request initialization object
+   *   (method, headers, body, signal, etc.). Existing headers are preserved.
+   * @returns {Request} A `Request` instance with the "X-JSTZ-TRANSFER" header set.
+   *
+   * @example
+   * // Create a POST request with transfer header and body
+   * const req = Request.withTransfer(
+   *   "jstz://tz1...",
+   *   5000,
+   *   { method: "POST", body: "send 5000 mutez" },
+   * );
+   *
+   * console.log(req.headers.get("X-JSTZ-TRANSFER")); // "5000"
+   */
+  static withTransfer(input, amount, init = { __proto__: null }) {
+    const headers = new Headers(init.headers);
+    headers.set("X-JSTZ-TRANSFER", String(amount));
+
+    return new Request(input, {
+      ...init,
+      headers,
+    });
+  }
+
+
+  /**
    * https://fetch.spec.whatwg.org/#dom-request
    * @param {RequestInfo} input
    * @param {RequestInit} init
@@ -538,6 +571,9 @@ class Request {
 }
 
 webidl.configureInterface(Request);
+ObjectDefineProperties(Request, {
+  withTransfer: { __proto__: null, enumerable: true },
+});
 const RequestPrototype = Request.prototype;
 mixinBody(RequestPrototype, _body, _mimeType);
 

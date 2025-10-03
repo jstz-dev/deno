@@ -29,6 +29,7 @@ import {
   guardFromHeaders,
   headerListFromHeaders,
   headersFromHeaderList,
+  Headers,
 } from "ext:deno_fetch/20_headers.js";
 const {
   ArrayPrototypeMap,
@@ -39,6 +40,7 @@ const {
   RegExpPrototypeExec,
   SafeArrayIterator,
   SafeRegExp,
+  String,
   Symbol,
   SymbolFor,
   TypeError,
@@ -312,6 +314,35 @@ class Response {
   }
 
   /**
+   * Constructs a `Response` object that includes the specified mutez transfer amount in its headers.
+   *
+   * @param {BodyInit | null} [body=null] - Optional response body (e.g. string, Blob, or null for no body).
+   * @param {number} amount - The amount in mutez to transfer.
+   * @param {ResponseInit} [init={}] - Optional response initialization object (status, headers, etc.).
+   * @returns {Response} A `Response` instance with the "X-JSTZ-TRANSFER" header set.
+   *
+   * @example
+   * // Create a text response indicating a transfer message
+   * const res = Response.withTransfer(
+   *   "Transfer of 1000 mutez initiated successfully.",
+   *   1000,
+   *   { status: 200, headers: { "Content-Type": "text/plain" } }
+   * );
+   *
+   * console.log(await res.text()); // "Transfer of 1000 mutez initiated successfully."
+   * console.log(res.headers.get("X-JSTZ-TRANSFER")); // "1000"
+   */
+  static withTransfer(body = null, amount, init = { __proto__: null }) {
+    const headers = new Headers(init.headers);
+    headers.set("X-JSTZ-TRANSFER", String(amount));
+
+    return new Response(body, {
+      ...init,
+      headers,
+    });
+  }
+
+  /**
    * @param {BodyInit | null} body
    * @param {ResponseInit} init
    */
@@ -444,6 +475,7 @@ ObjectDefineProperties(Response, {
   json: { __proto__: null, enumerable: true },
   redirect: { __proto__: null, enumerable: true },
   error: { __proto__: null, enumerable: true },
+  withTransfer: { __proto__: null, enumerable: true },
 });
 const ResponsePrototype = Response.prototype;
 mixinBody(ResponsePrototype, _body, _mimeType);
